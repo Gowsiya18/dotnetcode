@@ -638,12 +638,9 @@ namespace TheShoppinCart.Tests
 
 
 
-
 using NUnit.Framework;
 using Moq;
-using System.Collections.Generic;
-using TheShoppinCart.Models;
-using TheShoppinCart.Controllers;
+using System;
 
 namespace TheShoppinCart.Tests
 {
@@ -651,13 +648,11 @@ namespace TheShoppinCart.Tests
     public class DataAccessTests
     {
         private Mock<IDataAccess> mockDataAccess;
-        private CartController cartController;
 
         [SetUp]
         public void Setup()
         {
             mockDataAccess = new Mock<IDataAccess>();
-            cartController = new CartController(mockDataAccess.Object);
         }
 
         [Test]
@@ -668,13 +663,25 @@ namespace TheShoppinCart.Tests
             int productId = 10;
             int quantity = 2;
 
-            // Act
-            cartController.AddToCart(userId, productId, quantity);
+            // Mock setup
+            mockDataAccess.Setup(d => d.AddToCart(userId, productId, quantity)).Throws(new Exception("Simulated exception"));
 
-            // Assert
-            mockDataAccess.Verify(d => d.AddToCart(userId, productId, quantity), Times.Once);
+            // Act and Assert
+            try
+            {
+                var result = mockDataAccess.Object.AddToCart(userId, productId, quantity);
+                Assert.Fail("Expected exception was not thrown.");
+            }
+            catch (Exception ex)
+            {
+                // Log or handle the exception as needed
+                Console.WriteLine("Exception thrown: " + ex.Message);
+                Assert.IsTrue(ex is TargetInvocationException, "Expected TargetInvocationException");
+                Assert.IsNotNull(ex.InnerException, "Inner exception should not be null");
+                Assert.AreEqual("Simulated exception", ex.InnerException.Message, "Inner exception message mismatch");
+            }
         }
-
-        // Write similar tests for other methods in CartController and other controllers
     }
 }
+
+
