@@ -267,3 +267,370 @@ namespace TheShoppinCart.Tests.Controllers
         }
     }
 }
+
+
+
+using NUnit.Framework;
+using System;
+using System.Collections.Generic;
+using TheShoppinCart.Models;
+
+namespace TheShoppinCart.Tests
+{
+    [TestFixture]
+    public class DataAccessTests
+    {
+        private DataAccess _dataAccess;
+
+        [SetUp]
+        public void Setup()
+        {
+            _dataAccess = new DataAccess();
+            // Additional setup code if needed
+        }
+
+        [Test]
+        public void GetProducts_ReturnsProducts()
+        {
+            // Arrange & Act
+            List<Product> products = _dataAccess.GetProducts("Price", "ASC");
+
+            // Assert
+            Assert.IsNotNull(products);
+            Assert.Greater(products.Count, 0);
+            // Add more assertions based on your expected data
+        }
+
+        [Test]
+        public void GetProductById_ValidProductId_ReturnsProduct()
+        {
+            // Arrange
+            int productId = 1;
+
+            // Act
+            Product product = _dataAccess.GetProductById(productId);
+
+            // Assert
+            Assert.IsNotNull(product);
+            Assert.AreEqual(productId, product.ProductID);
+            // Add more assertions based on expected data
+        }
+
+        [Test]
+        public void GetProductById_InvalidProductId_ReturnsNull()
+        {
+            // Arrange
+            int productId = -1; // Assuming -1 is an invalid product ID
+
+            // Act
+            Product product = _dataAccess.GetProductById(productId);
+
+            // Assert
+            Assert.IsNull(product);
+            // Add more specific assertions if needed
+        }
+
+        [Test]
+        public void AddToCart_ValidParameters_Success()
+        {
+            // Arrange
+            int userId = 1;
+            int productId = 101;
+            int quantity = 2;
+
+            // Act
+            _dataAccess.AddToCart(userId, productId, quantity);
+            List<Cart> cartItems = _dataAccess.GetCartItems(userId);
+
+            // Assert
+            Assert.IsNotNull(cartItems);
+            Assert.AreEqual(1, cartItems.Count); // Adjust based on your test data
+            Assert.AreEqual(productId, cartItems[0].ProductID);
+            Assert.AreEqual(quantity, cartItems[0].Quantity);
+        }
+
+        [Test]
+        public void GetCartItems_ReturnsCartItems()
+        {
+            // Arrange
+            int userId = 1;
+
+            // Act
+            List<Cart> cartItems = _dataAccess.GetCartItems(userId);
+
+            // Assert
+            Assert.IsNotNull(cartItems);
+            // Add more specific assertions based on expected data
+        }
+
+        [Test]
+        public void ClearCart_Success()
+        {
+            // Arrange
+            int userId = 1;
+
+            // Act
+            _dataAccess.ClearCart(userId);
+            List<Cart> cartItems = _dataAccess.GetCartItems(userId);
+
+            // Assert
+            Assert.IsEmpty(cartItems);
+        }
+
+        [Test]
+        public void GetDiscountByCode_ValidCode_ReturnsDiscount()
+        {
+            // Arrange
+            string discountCode = "SUMMER25";
+
+            // Act
+            Discount discount = _dataAccess.GetDiscountByCode(discountCode);
+
+            // Assert
+            Assert.IsNotNull(discount);
+            Assert.AreEqual(discountCode, discount.DiscountCode);
+            // Add more specific assertions based on expected data
+        }
+
+        [Test]
+        public void GetDiscountByCode_InvalidCode_ReturnsNull()
+        {
+            // Arrange
+            string invalidCode = "INVALIDCODE";
+
+            // Act
+            Discount discount = _dataAccess.GetDiscountByCode(invalidCode);
+
+            // Assert
+            Assert.IsNull(discount);
+            // Add more specific assertions if needed
+        }
+
+        [Test]
+        public void CreateUser_ValidUser_Success()
+        {
+            // Arrange
+            string username = "testuser";
+            string password = "testpassword";
+
+            // Act
+            bool result = _dataAccess.CreateUser(username, password);
+
+            // Assert
+            Assert.IsTrue(result);
+            // Add more specific assertions or cleanup if needed
+        }
+
+        [Test]
+        public void GetUser_ValidCredentials_ReturnsUser()
+        {
+            // Arrange
+            string username = "testuser";
+            string password = "testpassword";
+
+            // Act
+            User user = _dataAccess.GetUser(username, password);
+
+            // Assert
+            Assert.IsNotNull(user);
+            Assert.AreEqual(username, user.Username);
+            // Add more specific assertions based on expected data
+        }
+
+        [Test]
+        public void GetUser_InvalidCredentials_ReturnsNull()
+        {
+            // Arrange
+            string username = "invaliduser";
+            string password = "invalidpassword";
+
+            // Act
+            User user = _dataAccess.GetUser(username, password);
+
+            // Assert
+            Assert.IsNull(user);
+            // Add more specific assertions if needed
+        }
+
+        [Test]
+        public void DoesUserExist_ExistingUser_ReturnsTrue()
+        {
+            // Arrange
+            string username = "existinguser";
+            string password = "password";
+
+            // Act
+            bool exists = _dataAccess.DoesUserExist(username, password);
+
+            // Assert
+            Assert.IsTrue(exists);
+        }
+
+        [Test]
+        public void DoesUserExist_NonExistingUser_ReturnsFalse()
+        {
+            // Arrange
+            string username = "nonexistinguser";
+            string password = "password";
+
+            // Act
+            bool exists = _dataAccess.DoesUserExist(username, password);
+
+            // Assert
+            Assert.IsFalse(exists);
+        }
+
+        [Test]
+        public void AddProduct_ValidProduct_Success()
+        {
+            // Arrange
+            Product productToAdd = new Product
+            {
+                ProductName = "New Product",
+                Price = 99.99M
+            };
+
+            // Act
+            _dataAccess.AddProduct(productToAdd);
+
+            // Assert
+            Assert.IsTrue(_dataAccess.ProductExists(productToAdd.ProductName, productToAdd.Price));
+            // Clean up or additional assertions if needed
+        }
+
+        [Test]
+        public void UpdateProduct_ValidProduct_Success()
+        {
+            // Arrange
+            Product productToUpdate = new Product
+            {
+                ProductID = 1,
+                ProductName = "Updated Product",
+                Price = 75.00M
+            };
+
+            // Act
+            _dataAccess.UpdateProduct(productToUpdate);
+            Product updatedProduct = _dataAccess.GetProductById(productToUpdate.ProductID);
+
+            // Assert
+            Assert.IsNotNull(updatedProduct);
+            Assert.AreEqual(productToUpdate.ProductName, updatedProduct.ProductName);
+            Assert.AreEqual(productToUpdate.Price, updatedProduct.Price);
+        }
+
+        [Test]
+        public void RemoveProduct_ValidProductId_Success()
+        {
+            // Arrange
+            int productIdToRemove = 1;
+
+            // Act
+            _dataAccess.RemoveProduct(productIdToRemove);
+            Product removedProduct = _dataAccess.GetProductById(productIdToRemove);
+
+            // Assert
+            Assert.IsNull(removedProduct);
+        }
+
+        [Test]
+        public void RemoveFromCart_ValidParameters_Success()
+        {
+            // Arrange
+            int userId = 1;
+            int productId = 101;
+
+            // Act
+            _dataAccess.RemoveFromCart(userId, productId);
+            List<Cart> cartItems = _dataAccess.GetCartItems(userId);
+
+            // Assert
+            Assert.IsNotNull(cartItems);
+            Assert.AreEqual(0, cartItems.Count); // Assuming the cart item was successfully removed
+        }
+
+        // Add more tests for other methods as needed
+    }
+}
+
+
+
+
+using NUnit.Framework;
+using System;
+using System.Data.SqlClient;
+using TheShoppinCart.Models;
+
+namespace TheShoppinCart.Tests
+{
+    [TestFixture]
+    public class DataAccessTests
+    {
+        private DataAccess _dataAccess;
+
+        [SetUp]
+        public void Setup()
+        {
+            _dataAccess = new DataAccess();
+            // Additional setup code if needed
+        }
+
+        [Test]
+        public void ProductExists_ProductDoesNotExist_ReturnsFalse()
+        {
+            // Arrange
+            string productName = "NonExistingProduct";
+            decimal price = 99.99M;
+
+            // Act
+            bool exists = _dataAccess.ProductExists(productName, price);
+
+            // Assert
+            Assert.IsFalse(exists);
+        }
+
+        [Test]
+        public void ProductExists_ProductExists_ReturnsTrue()
+        {
+            // Arrange
+            string productName = "ExistingProduct";
+            decimal price = 49.99M;
+
+            // Assuming the product exists in your database
+            InsertProductIntoDatabase(productName, price);
+
+            // Act
+            bool exists = _dataAccess.ProductExists(productName, price);
+
+            // Assert
+            Assert.IsTrue(exists);
+
+            // Clean up - remove the product from the database
+            RemoveProductFromDatabase(productName, price);
+        }
+
+        private void InsertProductIntoDatabase(string productName, decimal price)
+        {
+            using (SqlConnection conn = new SqlConnection(_dataAccess.GetConnectionString()))
+            {
+                conn.Open();
+                SqlCommand cmd = new SqlCommand("INSERT INTO Products (ProductName, Price) VALUES (@ProductName, @Price)", conn);
+                cmd.Parameters.AddWithValue("@ProductName", productName);
+                cmd.Parameters.AddWithValue("@Price", price);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        private void RemoveProductFromDatabase(string productName, decimal price)
+        {
+            using (SqlConnection conn = new SqlConnection(_dataAccess.GetConnectionString()))
+            {
+                conn.Open();
+                SqlCommand cmd = new SqlCommand("DELETE FROM Products WHERE ProductName=@ProductName AND Price=@Price", conn);
+                cmd.Parameters.AddWithValue("@ProductName", productName);
+                cmd.Parameters.AddWithValue("@Price", price);
+                cmd.ExecuteNonQuery();
+            }
+        }
+    }
+}
