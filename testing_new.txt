@@ -639,11 +639,9 @@ namespace TheShoppinCart.Tests
 
 
 
-
 using NUnit.Framework;
 using Moq;
 using System.Collections.Generic;
-using System.Data.SqlClient;
 using TheShoppinCart.Models;
 using TheShoppinCart.Controllers;
 
@@ -652,45 +650,31 @@ namespace TheShoppinCart.Tests
     [TestFixture]
     public class DataAccessTests
     {
-        private Mock<SqlConnection> mockConnection;
-        private Mock<SqlCommand> mockCommand;
-        private DataAccess dataAccess;
+        private Mock<IDataAccess> mockDataAccess;
+        private CartController cartController;
 
         [SetUp]
         public void Setup()
         {
-            mockConnection = new Mock<SqlConnection>();
-            mockCommand = new Mock<SqlCommand>();
-            dataAccess = new DataAccess();
+            mockDataAccess = new Mock<IDataAccess>();
+            cartController = new CartController(mockDataAccess.Object);
         }
 
         [Test]
-        public void GetProducts_ShouldReturnProducts()
+        public void AddToCart_ShouldAddItemToCart()
         {
             // Arrange
-            List<Product> expectedProducts = new List<Product>
-            {
-                new Product { ProductID = 1, ProductName = "Product1", Price = 10.0m },
-                new Product { ProductID = 2, ProductName = "Product2", Price = 15.0m }
-            };
-
-            mockCommand.SetupSequence(c => c.ExecuteReader())
-                       .Returns(new Mock<SqlDataReader>().Object) // First call
-                       .Returns(new Mock<SqlDataReader>().Object); // Second call
-
-            mockCommand.Setup(c => c.Parameters.AddWithValue(It.IsAny<string>(), It.IsAny<object>()));
-
-            mockConnection.Setup(c => c.Open());
-            mockConnection.Setup(c => c.CreateCommand()).Returns(mockCommand.Object);
+            int userId = 1;
+            int productId = 10;
+            int quantity = 2;
 
             // Act
-            var result = dataAccess.GetProducts("ProductName", "ASC");
+            cartController.AddToCart(userId, productId, quantity);
 
             // Assert
-            Assert.AreEqual(expectedProducts.Count, result.Count);
-            // Add more assertions as needed
+            mockDataAccess.Verify(d => d.AddToCart(userId, productId, quantity), Times.Once);
         }
 
-        // Write similar tests for other methods in DataAccess like GetProductById, AddToCart, etc.
+        // Write similar tests for other methods in CartController and other controllers
     }
 }
