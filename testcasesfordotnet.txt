@@ -1,0 +1,451 @@
+1. CartControllerTests.cs
+csharp
+Copy code
+using Moq;
+using System.Collections.Generic;
+using TheShoppinCart.Controllers;
+using TheShoppinCart.Models;
+using Xunit;
+
+namespace TheShoppinCart.Tests.Controllers
+{
+    public class CartControllerTests
+    {
+        private readonly CartController _controller;
+        private readonly Mock<DataAccess> _mockDataAccess;
+
+        public CartControllerTests()
+        {
+            _mockDataAccess = new Mock<DataAccess>();
+            _controller = new CartController(_mockDataAccess.Object);
+        }
+
+        [Fact]
+        public void AddToCart_Should_Call_DataAccess_AddToCart()
+        {
+            // Arrange
+            int userId = 1;
+            int productId = 1;
+            int quantity = 1;
+
+            // Act
+            _controller.AddToCart(userId, productId, quantity);
+
+            // Assert
+            _mockDataAccess.Verify(d => d.AddToCart(userId, productId, quantity), Times.Once);
+        }
+
+        [Fact]
+        public void GetCartItems_Should_Return_CartItems()
+        {
+            // Arrange
+            int userId = 1;
+            var cartItems = new List<Cart> { new Cart { CartID = 1, UserID = userId, ProductID = 1, Quantity = 1 } };
+            _mockDataAccess.Setup(d => d.GetCartItems(userId)).Returns(cartItems);
+
+            // Act
+            var result = _controller.GetCartItems(userId);
+
+            // Assert
+            Assert.Equal(cartItems, result);
+        }
+
+        [Fact]
+        public void ClearCart_Should_Call_DataAccess_ClearCart()
+        {
+            // Arrange
+            int userId = 1;
+
+            // Act
+            _controller.ClearCart(userId);
+
+            // Assert
+            _mockDataAccess.Verify(d => d.ClearCart(userId), Times.Once);
+        }
+
+        [Fact]
+        public void RemoveFromCart_Should_Call_DataAccess_RemoveFromCart()
+        {
+            // Arrange
+            int userId = 1;
+            int productId = 1;
+
+            // Act
+            _controller.RemoveFromCart(userId, productId);
+
+            // Assert
+            _mockDataAccess.Verify(d => d.RemoveFromCart(userId, productId), Times.Once);
+        }
+    }
+}
+2. CheckoutControllerTests.cs
+csharp
+Copy code
+using Moq;
+using System;
+using TheShoppinCart.Controllers;
+using TheShoppinCart.Models;
+using Xunit;
+
+namespace TheShoppinCart.Tests.Controllers
+{
+    public class CheckoutControllerTests
+    {
+        private readonly CheckoutController _controller;
+        private readonly Mock<DataAccess> _mockDataAccess;
+
+        public CheckoutControllerTests()
+        {
+            _mockDataAccess = new Mock<DataAccess>();
+            _controller = new CheckoutController(_mockDataAccess.Object);
+        }
+
+        [Fact]
+        public void ApplyDiscount_ValidCode_ReturnsVoucherMessage()
+        {
+            // Arrange
+            string code = "DISCOUNT10";
+            decimal totalAmount = 100m;
+            var discount = new Discount { DiscountCode = code, DiscountPercentage = 10, VoucherMessage = "10% off" };
+            _mockDataAccess.Setup(d => d.GetDiscountByCode(code)).Returns(discount);
+            
+            // Act
+            var result = _controller.ApplyDiscount(code, totalAmount, out var newTotal);
+
+            // Assert
+            Assert.Equal("10% off", result);
+            Assert.Equal(90, newTotal);
+        }
+
+        [Fact]
+        public void ApplyDiscount_InvalidCode_ThrowsException()
+        {
+            // Arrange
+            string code = "INVALID";
+            decimal totalAmount = 100m;
+            _mockDataAccess.Setup(d => d.GetDiscountByCode(code)).Returns((Discount)null);
+            
+            // Act & Assert
+            var exception = Assert.Throws<Exception>(() => _controller.ApplyDiscount(code, totalAmount, out var newTotal));
+            Assert.Equal("please enter valid Discount Code", exception.Message);
+        }
+    }
+}
+3. ProductControllerTests.cs
+csharp
+Copy code
+using Moq;
+using System.Collections.Generic;
+using TheShoppinCart.Controllers;
+using TheShoppinCart.Models;
+using Xunit;
+
+namespace TheShoppinCart.Tests.Controllers
+{
+    public class ProductControllerTests
+    {
+        private readonly ProductController _controller;
+        private readonly Mock<DataAccess> _mockDataAccess;
+
+        public ProductControllerTests()
+        {
+            _mockDataAccess = new Mock<DataAccess>();
+            _controller = new ProductController(_mockDataAccess.Object);
+        }
+
+        [Fact]
+        public void GetProducts_Should_Return_ProductList()
+        {
+            // Arrange
+            var products = new List<Product> { new Product { ProductID = 1, ProductName = "Product1", Price = 100 } };
+            _mockDataAccess.Setup(d => d.GetProducts("Price", "ASC")).Returns(products);
+
+            // Act
+            var result = _controller.GetProducts();
+
+            // Assert
+            Assert.Equal(products, result);
+        }
+
+        [Fact]
+        public void GetProductById_Should_Return_Product()
+        {
+            // Arrange
+            int productId = 1;
+            var product = new Product { ProductID = productId, ProductName = "Product1", Price = 100 };
+            _mockDataAccess.Setup(d => d.GetProductById(productId)).Returns(product);
+
+            // Act
+            var result = _controller.GetProductById(productId);
+
+            // Assert
+            Assert.Equal(product, result);
+        }
+
+        [Fact]
+        public void AddProduct_Should_Call_DataAccess_AddProduct()
+        {
+            // Arrange
+            var product = new Product { ProductName = "Product1", Price = 100 };
+
+            // Act
+            _controller.AddProduct(product);
+
+            // Assert
+            _mockDataAccess.Verify(d => d.AddProduct(product), Times.Once);
+        }
+
+        [Fact]
+        public void UpdateProduct_Should_Call_DataAccess_UpdateProduct()
+        {
+            // Arrange
+            var product = new Product { ProductID = 1, ProductName = "Product1", Price = 100 };
+
+            // Act
+            _controller.UpdateProduct(product);
+
+            // Assert
+            _mockDataAccess.Verify(d => d.UpdateProduct(product), Times.Once);
+        }
+
+        [Fact]
+        public void RemoveProduct_Should_Call_DataAccess_RemoveProduct()
+        {
+            // Arrange
+            int productId = 1;
+
+            // Act
+            _controller.RemoveProduct(productId);
+
+            // Assert
+            _mockDataAccess.Verify(d => d.RemoveProduct(productId), Times.Once);
+        }
+    }
+}
+4. UserControllerTests.cs
+csharp
+Copy code
+using Moq;
+using TheShoppinCart.Controllers;
+using TheShoppinCart.Models;
+using Xunit;
+
+namespace TheShoppinCart.Tests.Controllers
+{
+    public class UserControllerTests
+    {
+        private readonly UserController _controller;
+        private readonly Mock<DataAccess> _mockDataAccess;
+
+        public UserControllerTests()
+        {
+            _mockDataAccess = new Mock<DataAccess>();
+            _controller = new UserController(_mockDataAccess.Object);
+        }
+
+        [Fact]
+        public void CreateUser_Should_Call_DataAccess_CreateUser()
+        {
+            // Arrange
+            string username = "testuser";
+            string password = "password";
+
+            // Act
+            _controller.CreateUser(username, password);
+
+            // Assert
+            _mockDataAccess.Verify(d => d.CreateUser(username, password), Times.Once);
+        }
+
+        [Fact]
+        public void GetUser_Should_Return_User()
+        {
+            // Arrange
+            string username = "testuser";
+            string password = "password";
+            var user = new User { UserID = 1, Username = username, Password = password };
+            _mockDataAccess.Setup(d => d.GetUser(username, password)).Returns(user);
+
+            // Act
+            var result = _controller.GetUser(username, password);
+
+            // Assert
+            Assert.Equal(user, result);
+        }
+
+        [Fact]
+        public void DoesUserExist_Should_Return_True_When_User_Exists()
+        {
+            // Arrange
+            string username = "testuser";
+            string password = "password";
+            _mockDataAccess.Setup(d => d.DoesUserExist(username, password)).Returns(true);
+
+            // Act
+            var result = _controller.DoesUserExist(username, password);
+
+            // Assert
+            Assert.True(result);
+        }
+
+        [Fact]
+        public void DoesUserExist_Should_Return_False_When_User_Does_Not_Exist()
+        {
+            // Arrange
+            string username = "testuser";
+            string password = "password";
+            _mockDataAccess.Setup(d => d.DoesUserExist(username, password)).Returns(false);
+
+            // Act
+            var result = _controller.DoesUserExist(username, password);
+
+            // Assert
+            Assert.False(result);
+        }
+    }
+}
+
+
+
+
+Modified CartController
+csharp
+Copy code
+namespace TheShoppinCart.Controllers
+{
+    public class CartController
+    {
+        private readonly DataAccess _dataAccess;
+
+        public CartController(DataAccess dataAccess)
+        {
+            _dataAccess = dataAccess;
+        }
+
+        public void AddToCart(int userId, int productId, int quantity)
+        {
+            _dataAccess.AddToCart(userId, productId, quantity);
+        }
+
+        public List<Cart> GetCartItems(int userId)
+        {
+            return _dataAccess.GetCartItems(userId);
+        }
+
+        public void ClearCart(int userId)
+        {
+            _dataAccess.ClearCart(userId);
+        }
+
+        public void RemoveFromCart(int userId, int productId)
+        {
+            _dataAccess.RemoveFromCart(userId, productId);
+        }
+    }
+}
+Modified CheckoutController
+csharp
+Copy code
+namespace TheShoppinCart.Controllers
+{
+    public class CheckoutController
+    {
+        private readonly DataAccess _dataAccess;
+
+        public CheckoutController(DataAccess dataAccess)
+        {
+            _dataAccess = dataAccess;
+        }
+
+        public string ApplyDiscount(string code, decimal totalAmount, out decimal newTotal)
+        {
+            Discount discount = _dataAccess.GetDiscountByCode(code);
+            newTotal = totalAmount;
+
+            if (discount != null)
+            {
+                newTotal = totalAmount - (totalAmount * (discount.DiscountPercentage / 100));
+                return discount.VoucherMessage;
+            }
+            else
+            {
+                throw new Exception("please enter valid Discount Code");
+            }
+        }
+    }
+}
+Modified ProductController
+csharp
+Copy code
+namespace TheShoppinCart.Controllers
+{
+    public class ProductController
+    {
+        private readonly DataAccess _dataAccess;
+
+        public ProductController(DataAccess dataAccess)
+        {
+            _dataAccess = dataAccess;
+        }
+
+        public List<Product> GetProducts(string sortBy = "Price", string sortOrder = "ASC")
+        {
+            return _dataAccess.GetProducts(sortBy, sortOrder);
+        }
+
+        public Product GetProductById(int productId)
+        {
+            return _dataAccess.GetProductById(productId);
+        }
+
+        public void AddProduct(Product product)
+        {
+            _dataAccess.AddProduct(product);
+        }
+
+        public bool ProductExists(string productName, decimal price)
+        {
+            return _dataAccess.ProductExists(productName, price);
+        }
+
+        public void UpdateProduct(Product product)
+        {
+            _dataAccess.UpdateProduct(product);
+        }
+
+        public void RemoveProduct(int productID)
+        {
+            _dataAccess.RemoveProduct(productID);
+        }
+    }
+}
+Modified UserController
+csharp
+Copy code
+namespace TheShoppinCart.Controllers
+{
+    public class UserController
+    {
+        private readonly DataAccess _dataAccess;
+
+        public UserController(DataAccess dataAccess)
+        {
+            _dataAccess = dataAccess;
+        }
+
+        public bool CreateUser(string username, string password)
+        {
+            return _dataAccess.CreateUser(username, password);
+        }
+
+        public User GetUser(string username, string password)
+        {
+            return _dataAccess.GetUser(username, password);
+        }
+
+        public bool DoesUserExist(string username, string password)
+        {
+            return _dataAccess.DoesUserExist(username, password);
+        }
+    }
+}
