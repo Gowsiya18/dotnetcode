@@ -634,3 +634,63 @@ namespace TheShoppinCart.Tests
         }
     }
 }
+
+
+
+
+
+
+using NUnit.Framework;
+using Moq;
+using System.Collections.Generic;
+using System.Data.SqlClient;
+using TheShoppinCart.Models;
+using TheShoppinCart.Controllers;
+
+namespace TheShoppinCart.Tests
+{
+    [TestFixture]
+    public class DataAccessTests
+    {
+        private Mock<SqlConnection> mockConnection;
+        private Mock<SqlCommand> mockCommand;
+        private DataAccess dataAccess;
+
+        [SetUp]
+        public void Setup()
+        {
+            mockConnection = new Mock<SqlConnection>();
+            mockCommand = new Mock<SqlCommand>();
+            dataAccess = new DataAccess();
+        }
+
+        [Test]
+        public void GetProducts_ShouldReturnProducts()
+        {
+            // Arrange
+            List<Product> expectedProducts = new List<Product>
+            {
+                new Product { ProductID = 1, ProductName = "Product1", Price = 10.0m },
+                new Product { ProductID = 2, ProductName = "Product2", Price = 15.0m }
+            };
+
+            mockCommand.SetupSequence(c => c.ExecuteReader())
+                       .Returns(new Mock<SqlDataReader>().Object) // First call
+                       .Returns(new Mock<SqlDataReader>().Object); // Second call
+
+            mockCommand.Setup(c => c.Parameters.AddWithValue(It.IsAny<string>(), It.IsAny<object>()));
+
+            mockConnection.Setup(c => c.Open());
+            mockConnection.Setup(c => c.CreateCommand()).Returns(mockCommand.Object);
+
+            // Act
+            var result = dataAccess.GetProducts("ProductName", "ASC");
+
+            // Assert
+            Assert.AreEqual(expectedProducts.Count, result.Count);
+            // Add more assertions as needed
+        }
+
+        // Write similar tests for other methods in DataAccess like GetProductById, AddToCart, etc.
+    }
+}
