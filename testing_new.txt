@@ -685,3 +685,48 @@ namespace TheShoppinCart.Tests
 }
 
 
+
+
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Moq;
+using NUnit.Framework;
+using TheShoppinCart.Controllers;
+using TheShoppinCart.Data;
+using Microsoft.AspNetCore.Mvc;
+ 
+ 
+namespace TheShoppinCart.Data
+{
+    [TestFixture]
+    public class UserControllerTests
+    {
+        private Mock<DataAccess> _mockDataAccess;
+        private UserController _userController;
+ 
+        [SetUp]
+        public void Setup()
+        {
+            _mockDataAccess = new Mock<DataAccess>();
+            _userController = new UserController(_mockDataAccess.Object);
+ 
+ 
+        }
+        [Test]
+        public void GetUserAndPassword()
+        {
+            string username = "aswin";
+            string password = "12345";
+            var mockuser = new User { UserID = 1, Username = username, Password = password };
+            _mockDataAccess.Setup(x => x.GetUser(username, password)).Returns(mockuser);
+ 
+            var result = _userController.GetUser(username, password);
+            Assert.IsInstanceOf<OkObjectResult>(result);
+            Assert.Equals(username, result.Username);
+        }
+    }
+ }
