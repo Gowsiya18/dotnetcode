@@ -599,3 +599,92 @@ namespace TheShoppinCart.Tests
         }
     }
 }
+
+
+
+
+using NUnit.Framework;
+using Moq;
+using System.Collections.Generic;
+using System.Data.SqlClient;
+using System.Configuration;
+using System.Data;
+using TheShoppinCart.Models;
+
+namespace TheShoppinCart.Tests.DataAccess
+{
+    [TestFixture]
+    public class DataAccessTests
+    {
+        private Mock<SqlConnection> mockConnection;
+        private Mock<SqlCommand> mockCommand;
+        private Mock<SqlDataReader> mockReader;
+        private DataAccess dataAccess;
+
+        [SetUp]
+        public void Setup()
+        {
+            // Mock the configuration to return a fake connection string
+            var mockConfiguration = new Mock<Configuration>();
+            mockConfiguration.Setup(c => c.ConnectionStrings["ShoppingCart"].ConnectionString)
+                             .Returns("fakeConnectionString");
+
+            // Mock SqlConnection, SqlCommand, and SqlDataReader
+            mockConnection = new Mock<SqlConnection>();
+            mockCommand = new Mock<SqlCommand>();
+            mockReader = new Mock<SqlDataReader>();
+
+            // Setup the mock connection to return a mock command
+            mockConnection.Setup(conn => conn.CreateCommand()).Returns(mockCommand.Object);
+
+            // Setup the mock command to return a mock reader
+            mockCommand.Setup(cmd => cmd.ExecuteReader()).Returns(mockReader.Object);
+
+            // Initialize the DataAccess with the mock configuration
+            dataAccess = new DataAccess();
+        }
+
+        [Test]
+        public void GetProducts_ShouldReturnProducts()
+        {
+            // Arrange
+            string sortBy = "ProductName";
+            string sortOrder = "ASC";
+            var expectedProducts = new List<Product>
+            {
+                new Product { ProductID = 1, ProductName = "Product1", Price = 10.0m },
+                new Product { ProductID = 2, ProductName = "Product2", Price = 20.0m }
+            };
+
+            mockReader.SetupSequence(r => r.Read())
+                      .Returns(true)
+                      .Returns(true)
+                      .Returns(false);
+
+            mockReader.SetupSequence(r => r["ProductID"])
+                      .Returns(expectedProducts[0].ProductID)
+                      .Returns(expectedProducts[1].ProductID);
+
+            mockReader.SetupSequence(r => r["ProductName"])
+                      .Returns(expectedProducts[0].ProductName)
+                      .Returns(expectedProducts[1].ProductName);
+
+            mockReader.SetupSequence(r => r["Price"])
+                      .Returns(expectedProducts[0].Price)
+                      .Returns(expectedProducts[1].Price);
+
+            // Act
+            var result = dataAccess.GetProducts(sortBy, sortOrder);
+
+            // Assert
+            Assert.AreEqual(expectedProducts.Count, result.Count);
+            for (int i = 0; i < expectedProducts.Count; i++)
+            {
+                Assert.AreEqual(expectedProducts[i].ProductID, result[i].ProductID);
+                Assert.AreEqual(expectedProducts[i].ProductName, result[i].ProductName);
+                Assert.AreEqual(expectedProducts[i].Price, result[i].Price);
+            }
+        }
+    }
+}
+
