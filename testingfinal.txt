@@ -1,0 +1,460 @@
+UserControllerTests.cs
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Moq;
+using NUnit.Framework;
+using TheShoppinCart.Controllers;
+using TheShoppinCart.Data;
+using Microsoft.AspNetCore.Mvc;
+
+namespace TheShoppinCart.Tests.Controllers
+{
+    [TestFixture]
+    public class UserControllerTests
+    {
+        private Mock<DataAccess> _mockDataAccess;
+        private UserController _userController;
+
+        [SetUp]
+        public void Setup()
+        {
+            _mockDataAccess = new Mock<DataAccess>();
+            _userController = new UserController(_mockDataAccess.Object);
+        }
+
+        [Test]
+        public void CreateUser_ReturnsTrue_WhenUserIsCreated()
+        {
+            // Arrange
+            string username = "aswin";
+            string password = "12345";
+            _mockDataAccess.Setup(x => x.CreateUser(username, password)).Returns(true);
+
+            // Act
+            var result = _userController.CreateUser(username, password);
+
+            // Assert
+            Assert.IsInstanceOf<bool>(result);
+            Assert.IsTrue(result);
+        }
+
+        [Test]
+        public void CreateUser_ReturnsFalse_WhenUserCreationFails()
+        {
+            // Arrange
+            string username = "aswin";
+            string password = "12345";
+            _mockDataAccess.Setup(x => x.CreateUser(username, password)).Returns(false);
+
+            // Act
+            var result = _userController.CreateUser(username, password);
+
+            // Assert
+            Assert.IsInstanceOf<bool>(result);
+            Assert.IsFalse(result);
+        }
+
+        [Test]
+        public void GetUserAndPassword_ReturnsUser_WhenUserExists()
+        {
+            // Arrange
+            string username = "aswin";
+            string password = "12345";
+            var mockUser = new User { UserID = 1, Username = username, Password = password };
+            _mockDataAccess.Setup(x => x.GetUser(username, password)).Returns(mockUser);
+
+            // Act
+            var result = _userController.GetUser(username, password);
+
+            // Assert
+            Assert.IsInstanceOf<User>(result);
+            Assert.AreEqual(username, result.Username);
+            Assert.AreEqual(password, result.Password);
+        }
+
+        [Test]
+        public void GetUserAndPassword_ReturnsNull_WhenUserDoesNotExist()
+        {
+            // Arrange
+            string username = "nonexistent";
+            string password = "wrongpassword";
+            _mockDataAccess.Setup(x => x.GetUser(username, password)).Returns((User)null);
+
+            // Act
+            var result = _userController.GetUser(username, password);
+
+            // Assert
+            Assert.IsNull(result);
+        }
+
+        [Test]
+        public void DoesUserExist_ReturnsTrue_WhenUserExists()
+        {
+            // Arrange
+            string username = "aswin";
+            string password = "12345";
+            _mockDataAccess.Setup(x => x.DoesUserExist(username, password)).Returns(true);
+
+            // Act
+            var result = _userController.DoesUserExist(username, password);
+
+            // Assert
+            Assert.IsInstanceOf<bool>(result);
+            Assert.IsTrue(result);
+        }
+
+        [Test]
+        public void DoesUserExist_ReturnsFalse_WhenUserDoesNotExist()
+        {
+            // Arrange
+            string username = "nonexistent";
+            string password = "wrongpassword";
+            _mockDataAccess.Setup(x => x.DoesUserExist(username, password)).Returns(false);
+
+            // Act
+            var result = _userController.DoesUserExist(username, password);
+
+            // Assert
+            Assert.IsInstanceOf<bool>(result);
+            Assert.IsFalse(result);
+        }
+    }
+}
+
+
+UserControllerTests.cs
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Moq;
+using NUnit.Framework;
+using TheShoppinCart.Controllers;
+using TheShoppinCart.Data;
+
+namespace TheShoppinCart.Tests.Controllers
+{
+    [TestFixture]
+    public class UserControllerTests
+    {
+        private Mock<DataAccess> _mockDataAccess;
+        private UserController _userController;
+
+        [SetUp]
+        public void Setup()
+        {
+            _mockDataAccess = new Mock<DataAccess>();
+            _userController = new UserController(_mockDataAccess.Object);
+        }
+
+        [Test]
+        public void CreateUser_ReturnsTrue_WhenUserIsCreated()
+        {
+            // Arrange
+            string username = "aswin";
+            string password = "12345";
+            _mockDataAccess.Setup(x => x.CreateUser(username, password)).Returns(true);
+
+            // Act
+            var result = _userController.CreateUser(username, password);
+
+            // Assert
+            Assert.IsInstanceOf<bool>(result);
+            Assert.IsTrue(result);
+        }
+
+        [Test]
+        public void CreateUser_ReturnsFalse_WhenUserCreationFails()
+        {
+            // Arrange
+            string username = "aswin";
+            string password = "12345";
+            _mockDataAccess.Setup(x => x.CreateUser(username, password)).Returns(false);
+
+            // Act
+            var result = _userController.CreateUser(username, password);
+
+            // Assert
+            Assert.IsInstanceOf<bool>(result);
+            Assert.IsFalse(result);
+        }
+
+        [Test]
+        public void GetUser_ReturnsUser_WhenUserExists()
+        {
+            // Arrange
+            string username = "aswin";
+            string password = "12345";
+            var mockUser = new User { UserID = 1, Username = username, Password = password };
+            _mockDataAccess.Setup(x => x.GetUser(username, password)).Returns(mockUser);
+
+            // Act
+            var result = _userController.GetUser(username, password);
+
+            // Assert
+            Assert.IsInstanceOf<User>(result);
+            Assert.AreEqual(username, result.Username);
+            Assert.AreEqual(password, result.Password);
+        }
+
+        [Test]
+        public void GetUser_ReturnsNull_WhenUserDoesNotExist()
+        {
+            // Arrange
+            string username = "nonexistent";
+            string password = "wrongpassword";
+            _mockDataAccess.Setup(x => x.GetUser(username, password)).Returns((User)null);
+
+            // Act
+            var result = _userController.GetUser(username, password);
+
+            // Assert
+            Assert.IsNull(result);
+        }
+
+        [Test]
+        public void DoesUserExist_ReturnsTrue_WhenUserExists()
+        {
+            // Arrange
+            string username = "aswin";
+            string password = "12345";
+            _mockDataAccess.Setup(x => x.DoesUserExist(username, password)).Returns(true);
+
+            // Act
+            var result = _userController.DoesUserExist(username, password);
+
+            // Assert
+            Assert.IsInstanceOf<bool>(result);
+            Assert.IsTrue(result);
+        }
+
+        [Test]
+        public void DoesUserExist_ReturnsFalse_WhenUserDoesNotExist()
+        {
+            // Arrange
+            string username = "nonexistent";
+            string password = "wrongpassword";
+            _mockDataAccess.Setup(x => x.DoesUserExist(username, password)).Returns(false);
+
+            // Act
+            var result = _userController.DoesUserExist(username, password);
+
+            // Assert
+            Assert.IsInstanceOf<bool>(result);
+            Assert.IsFalse(result);
+        }
+    }
+}
+
+
+
+
+CheckoutControllerTests.cs
+using System;
+using Moq;
+using NUnit.Framework;
+using TheShoppinCart.Controllers;
+using TheShoppinCart.Data;
+
+namespace TheShoppinCart.Tests.Controllers
+{
+    [TestFixture]
+    public class CheckoutControllerTests
+    {
+        private Mock<DataAccess> _mockDataAccess;
+        private CheckoutController _checkoutController;
+
+        [SetUp]
+        public void Setup()
+        {
+            _mockDataAccess = new Mock<DataAccess>();
+            _checkoutController = new CheckoutController(_mockDataAccess.Object);
+        }
+
+        [Test]
+        public void ApplyDiscount_ReturnsVoucherMessage_WhenDiscountIsApplied()
+        {
+            // Arrange
+            string code = "DISCOUNT10";
+            decimal totalAmount = 100m;
+            decimal expectedNewTotal = 90m;
+            string expectedVoucherMessage = "10% off your purchase!";
+            var discount = new Discount { DiscountPercentage = 10, VoucherMessage = expectedVoucherMessage };
+            _mockDataAccess.Setup(x => x.GetDiscountByCode(code)).Returns(discount);
+
+            // Act
+            var result = _checkoutController.ApplyDiscount(code, totalAmount, out decimal newTotal);
+
+            // Assert
+            Assert.IsInstanceOf<string>(result);
+            Assert.AreEqual(expectedVoucherMessage, result);
+            Assert.AreEqual(expectedNewTotal, newTotal);
+        }
+
+        [Test]
+        public void ApplyDiscount_ThrowsException_WhenDiscountCodeIsInvalid()
+        {
+            // Arrange
+            string code = "INVALID";
+            decimal totalAmount = 100m;
+            _mockDataAccess.Setup(x => x.GetDiscountByCode(code)).Returns((Discount)null);
+
+            // Act & Assert
+            var ex = Assert.Throws<Exception>(() => _checkoutController.ApplyDiscount(code, totalAmount, out decimal newTotal));
+            Assert.AreEqual("Please enter a valid Discount Code", ex.Message);
+        }
+    }
+}
+
+
+
+
+ProductControllerTests.cs
+
+using System;
+using System.Collections.Generic;
+using Moq;
+using NUnit.Framework;
+using TheShoppinCart.Controllers;
+using TheShoppinCart.Data;
+
+namespace TheShoppinCart.Tests.Controllers
+{
+    [TestFixture]
+    public class ProductControllerTests
+    {
+        private Mock<DataAccess> _mockDataAccess;
+        private ProductController _productController;
+
+        [SetUp]
+        public void Setup()
+        {
+            _mockDataAccess = new Mock<DataAccess>();
+            _productController = new ProductController(_mockDataAccess.Object);
+        }
+
+        [Test]
+        public void GetProducts_ReturnsProductList()
+        {
+            // Arrange
+            var mockProducts = new List<Product> { new Product { ProductID = 1, Name = "Product1", Price = 10m } };
+            _mockDataAccess.Setup(x => x.GetProducts("Price", "ASC")).Returns(mockProducts);
+
+            // Act
+            var result = _productController.GetProducts();
+
+            // Assert
+            Assert.IsInstanceOf<List<Product>>(result);
+            Assert.AreEqual(1, result.Count);
+            Assert.AreEqual("Product1", result[0].Name);
+        }
+
+        [Test]
+        public void GetProductById_ReturnsProduct_WhenProductExists()
+        {
+            // Arrange
+            int productId = 1;
+            var mockProduct = new Product { ProductID = productId, Name = "Product1", Price = 10m };
+            _mockDataAccess.Setup(x => x.GetProductById(productId)).Returns(mockProduct);
+
+            // Act
+            var result = _productController.GetProductById(productId);
+
+            // Assert
+            Assert.IsInstanceOf<Product>(result);
+            Assert.AreEqual(productId, result.ProductID);
+            Assert.AreEqual("Product1", result.Name);
+        }
+
+        [Test]
+        public void GetProductById_ReturnsNull_WhenProductDoesNotExist()
+        {
+            // Arrange
+            int productId = 1;
+            _mockDataAccess.Setup(x => x.GetProductById(productId)).Returns((Product)null);
+
+            // Act
+            var result = _productController.GetProductById(productId);
+
+            // Assert
+            Assert.IsNull(result);
+        }
+
+        [Test]
+        public void AddProduct_CallsDataAccessAddProduct()
+        {
+            // Arrange
+            var product = new Product { ProductID = 1, Name = "Product1", Price = 10m };
+
+            // Act
+            _productController.AddProduct(product);
+
+            // Assert
+            _mockDataAccess.Verify(x => x.AddProduct(product), Times.Once);
+        }
+
+        [Test]
+        public void ProductExists_ReturnsTrue_WhenProductExists()
+        {
+            // Arrange
+            string productName = "Product1";
+            decimal price = 10m;
+            _mockDataAccess.Setup(x => x.ProductExists(productName, price)).Returns(true);
+
+            // Act
+            var result = _productController.ProductExists(productName, price);
+
+            // Assert
+            Assert.IsInstanceOf<bool>(result);
+            Assert.IsTrue(result);
+        }
+
+        [Test]
+        public void ProductExists_ReturnsFalse_WhenProductDoesNotExist()
+        {
+            // Arrange
+            string productName = "NonExistentProduct";
+            decimal price = 10m;
+            _mockDataAccess.Setup(x => x.ProductExists(productName, price)).Returns(false);
+
+            // Act
+            var result = _productController.ProductExists(productName, price);
+
+            // Assert
+            Assert.IsInstanceOf<bool>(result);
+            Assert.IsFalse(result);
+        }
+
+        [Test]
+        public void UpdateProduct_CallsDataAccessUpdateProduct()
+        {
+            // Arrange
+            var product = new Product { ProductID = 1, Name = "Product1", Price = 10m };
+
+            // Act
+            _productController.UpdateProduct(product);
+
+            // Assert
+            _mockDataAccess.Verify(x => x.UpdateProduct(product), Times.Once);
+        }
+
+        [Test]
+        public void RemoveProduct_CallsDataAccessRemoveProduct()
+        {
+            // Arrange
+            int productId = 1;
+
+            // Act
+            _productController.RemoveProduct(productId);
+
+            // Assert
+            _mockDataAccess.Verify(x => x.RemoveProduct(productId), Times.Once);
+        }
+    }
+}
+
